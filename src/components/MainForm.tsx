@@ -1,5 +1,3 @@
-'use client';
-
 import { Form, Input, Button, Segmented, message, Modal } from 'antd';
 import { AlertCircle, CheckCircle, Gift, Heart, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';

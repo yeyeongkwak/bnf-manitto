@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { Alert, Avatar, Button, Card, Col, Row, Space, Tag, Typography } from 'antd';
 import { Handshake } from 'lucide-react';

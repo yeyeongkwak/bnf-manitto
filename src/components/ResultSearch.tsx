@@ -1,5 +1,3 @@
-'use client';
-
 import { Form, Input, Button, message, Empty, Card } from 'antd';
 import { useState } from 'react';
 import { Lock, Search } from 'lucide-react';
