@@ -1,65 +1,132 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState } from 'react';
+import { ResultsSearch } from '@/components/ResultSearch';
+import { Button, Modal, Tabs } from 'antd';
+import { RegistrationForm } from '@/components/MainForm';
+import { SecretSanta } from '@/components/SecretSanta';
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+   const [activeTab, setActiveTab] = useState<string>('1');
+   const [registeredUserId, setRegisteredUserId] = useState<string | null>(null);
+   const [userId, setUserId] = useState<string | null>(null);
+
+   const [showModal, setShowModal] = useState(false);
+
+   const handleRegistrationComplete = (userId: string) => {
+      setRegisteredUserId(userId);
+      setShowModal(true);
+
+      // 세션스토리지에 10분 만료 저장
+      const expires = Date.now() + 10 * 60 * 1000;
+      sessionStorage.setItem('user-uuid', JSON.stringify({ id: userId, expires }));
+   };
+
+   const handleModalConfirm = () => {
+      setShowModal(false);
+      setActiveTab('2'); // 마니또 뽑기 탭으로 이동
+   };
+
+   const handleModalCancel = () => {
+      setShowModal(false);
+      setRegisteredUserId(null);
+      // RegistrationForm 내부에서 폼 리셋 함수 호출 가능
+   };
+
+   const handleLoginSuccess = (userId: string) => {
+      // 세션 저장
+      const expires = Date.now() + 10 * 60 * 1000;
+      sessionStorage.setItem('user-uuid', JSON.stringify({ id: userId, expires }));
+
+      // 상태 업데이트
+      setUserId(userId);
+      setActiveTab('2'); // 로그인 성공 → 마니또 탭으로 이동
+   };
+
+   const items = [
+      {
+         key: '1',
+         label: '참가 신청',
+         children: <RegistrationForm onComplete={handleRegistrationComplete} />
+      },
+      {
+         key: '2',
+         label: '마니또 뽑기 및 결과조회',
+         children: <SecretSanta userId={userId} onRequireLogin={() => setActiveTab('3')} />
+      },
+      {
+         key: '3',
+         label: '로그인',
+         children: <ResultsSearch onLoginSuccess={handleLoginSuccess} />
+      }
+   ];
+
+   useEffect(() => {
+      const stored = sessionStorage.getItem('user-uuid');
+      if (!stored) return;
+
+      try {
+         const { id, expires } = JSON.parse(stored) as { id: string; expires?: number };
+
+         if (!expires || Date.now() < expires) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setUserId(id);
+         } else {
+            sessionStorage.removeItem('user-uuid');
+         }
+      } catch {
+         // 형식 깨진 경우 정리
+         sessionStorage.removeItem('user-uuid');
+      }
+   }, []);
+
+   return (
+      <>
+         <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={items}
+            size="large"
+            tabBarStyle={{
+               display: 'flex',
+               justifyContent: 'space-between'
+            }}
+         >
+            {/* items prop으로 이미 탭이 렌더되므로 children은 필요 없음 */}
+         </Tabs>
+         <Modal
+            maskClosable={false}
+            open={showModal}
+            onCancel={() => {
+               handleModalCancel();
+            }}
+            footer={
+               <div style={{ textAlign: 'center' }}>
+                  <Button
+                     onClick={() => {
+                        handleModalCancel();
+                     }}
+                     style={{ marginRight: 8 }}
+                  >
+                     취 소
+                  </Button>
+                  <Button
+                     type="primary"
+                     onClick={() => {
+                        handleModalConfirm();
+                     }}
+                  >
+                     확 인
+                  </Button>
+               </div>
+            }
+            okText={'나의 마니또 뽑으러 가기👉🏻'}
+            title={'본인인증 완료👏🏻'}
+            style={{ textAlign: 'center' }}
+         >
+            본인인증 및 사용자 생성이 완료되었어요!
+            <br />
+            마니또를 뽑으러 가볼까요?!😁
+         </Modal>
+      </>
+   );
 }

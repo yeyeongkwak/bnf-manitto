@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "tailwindcss/preflight";
+@tailwind utilities;
+
 
 :root {
   --background: #ffffff;
@@ -8,8 +11,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,3 +25,41 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.ant-modal {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  padding-bottom: 0 !important;
+}
+
+.ant-modal-content {
+  margin: 0 auto;
+}
+
+.ant-modal-footer {
+  text-align: center !important;
+}
+
+.custom-card:hover {
+  border: 2px #1677ff solid !important; /* 원하는 색으로 변경 */
+}
+
+.ant-tabs-nav-list {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.ant-tabs-tab {
+  flex: 1 1 0 !important;
+  display: flex;              /* 중요 */
+  justify-content: center;    /* 가로 중앙 */
+  align-items: center;        /* 세로 중앙 */
+}
+
+.ant-tabs-tab-btn {
+  display: flex;              /* 중요 */
+  justify-content: center;    /* 가로 중앙 */
+  align-items: center;        /* 세로 중앙 */
+  width: 100%;
+}
+
