@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Avatar, Button, Card, Col, Row, Space, Tag, Typography } from 'antd';
 import { Handshake } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export const SecretSanta = (props: { userId: string | null; onRequireLogin: () =
    const [error, setError] = useState<string | null>(null);
    const [loading, setLoading] = useState(false);
    const [showDetails, setShowDetails] = useState(false);
-
+   const [effectiveUserId, setEffectiveUserId] = useState<string | null>(userId);
    const handleDraw = async () => {
       if (!userId) {
          // 화면에서 에러 텍스트보다, 바로 로그인 탭으로 보내버리기
@@ -74,6 +74,36 @@ export const SecretSanta = (props: { userId: string | null; onRequireLogin: () =
       );
    };
 
+   useEffect(() => {
+      // 부모가 userId를 이미 내려줬으면 그걸 우선 사용
+      if (userId) {
+         // eslint-disable-next-line react-hooks/set-state-in-effect
+         setEffectiveUserId(userId);
+         return;
+      }
+
+      // 부모에서 안 내려준 경우, sessionStorage에서 직접 읽기
+      try {
+         const stored = sessionStorage.getItem('user-uuid');
+         if (!stored) {
+            setEffectiveUserId(null);
+            return;
+         }
+
+         const { id, expires } = JSON.parse(stored) as { id: string; expires?: number };
+
+         if (!expires || Date.now() < expires) {
+            setEffectiveUserId(id);
+         } else {
+            sessionStorage.removeItem('user-uuid');
+            setEffectiveUserId(null);
+         }
+      } catch {
+         sessionStorage.removeItem('user-uuid');
+         setEffectiveUserId(null);
+      }
+   }, [userId]);
+
    return (
       <Space direction="vertical" size={24} style={{ width: '100%' }}>
          {/* draw button */}
@@ -101,7 +131,7 @@ export const SecretSanta = (props: { userId: string | null; onRequireLogin: () =
                      disabled={loading || !userId}
                      className="px-6 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold shadow-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                     {loading ? '마니또 뽑는 중...' : '나의 마니또 뽑기'}
+                     {loading ? '마니또 뽑는 중...' : '나의 마니또 뽑기 / 조회하기'}
                   </Button>
                )}
             </div>

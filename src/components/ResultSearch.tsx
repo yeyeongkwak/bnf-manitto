@@ -1,6 +1,9 @@
-import { Form, Input, Button, message, Empty, Card } from 'antd';
+// src/components/ResultSearch.tsx
+'use client';
+
+import { Form, Input, Button, message } from 'antd';
 import { useState } from 'react';
-import { Lock, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 type ResultsSearchProps = {
    onLoginSuccess?: (userId: string) => void;
@@ -9,26 +12,38 @@ type ResultsSearchProps = {
 export function ResultsSearch({ onLoginSuccess }: ResultsSearchProps) {
    const [form] = Form.useForm();
    const [loading, setLoading] = useState(false);
-   const [results, setResults] = useState<any>(null);
 
-   const handleSearch = async (values: any) => {
+   const handleLogin = async (values: any) => {
       setLoading(true);
       try {
-         // 여기에 실제 API 호출 로직을 추가
-         console.log('검색:', values);
-
-         // 더미 데이터 예제
-         setResults({
-            name: values.name,
-            email: values.email,
-            manito: '홍길동',
-            manitoMessage: '반갑습니다!',
-            yourMessage: '감사합니다!'
+         const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+               username: values.name, // 이름 필드
+               password: values.password // 비밀번호 필드
+            })
          });
 
-         message.success('결과를 조회했습니다.');
-      } catch (error) {
-         message.error('조회 중 오류가 발생했습니다.');
+         const json = await res.json();
+
+         if (res.ok && json.success) {
+            message.success(json.message ?? '로그인에 성공했습니다.');
+
+            // 부모(Home)에게 로그인 성공 알려주기
+            if (onLoginSuccess) {
+               onLoginSuccess(json.userId as string);
+            }
+
+            // 폼 리셋
+            form.resetFields();
+         } else {
+            const msg = json.message ?? '이름 또는 비밀번호가 올바르지 않습니다.';
+            message.error(msg);
+         }
+      } catch (e) {
+         console.error(e);
+         message.error('로그인 중 오류가 발생했습니다.');
       } finally {
          setLoading(false);
       }
@@ -36,17 +51,17 @@ export function ResultsSearch({ onLoginSuccess }: ResultsSearchProps) {
 
    return (
       <div className="w-full">
-         <Form form={form} layout="vertical" onFinish={handleSearch} autoComplete="off" className="mb-6">
+         <Form form={form} layout="vertical" onFinish={handleLogin} autoComplete="off" className="mb-6">
             <Form.Item label="이름" name="name" rules={[{ required: true, message: '이름을 입력해주세요.' }]}>
                <Input placeholder="이름을 입력하세요" size="large" />
             </Form.Item>
 
             <Form.Item
-               label={'비밀번호'}
-               name={'password'}
+               label="비밀번호"
+               name="password"
                rules={[{ required: true, message: '비밀번호를 입력해주세요.' }]}
             >
-               <Input size={'large'} placeholder={'비밀번호를 입력하세요'} />
+               <Input.Password placeholder="비밀번호를 입력하세요" size="large" />
             </Form.Item>
 
             <Form.Item>
@@ -56,7 +71,7 @@ export function ResultsSearch({ onLoginSuccess }: ResultsSearchProps) {
                   size="large"
                   loading={loading}
                   className="w-full"
-                  icon={<Lock size={18} />}
+                  icon={<Search size={18} />}
                >
                   로그인
                </Button>
