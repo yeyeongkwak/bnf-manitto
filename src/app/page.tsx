@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+
+import { Suspense, useEffect, useState } from 'react';
 import { ResultsSearch } from '@/components/ResultSearch';
 import { Button, Modal, Tabs } from 'antd';
 import { RegistrationForm } from '@/components/MainForm';
@@ -46,7 +47,11 @@ export default function Home() {
       {
          key: '1',
          label: '참가 신청',
-         children: <RegistrationForm onComplete={handleRegistrationComplete} />
+         children: (
+            <Suspense fallback={null}>
+               <RegistrationForm onComplete={handleRegistrationComplete} />
+            </Suspense>
+         )
       },
       {
          key: '2',
