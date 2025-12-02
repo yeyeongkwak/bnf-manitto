@@ -11,7 +11,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
    return (
       <html lang="ko">
          <body>
-            <main className="min-h-screen  py-12 px-4 flex items-center justify-center">
+            <main className="min-h-screen  py-12 px-4 flex items-cente bg-white justify-center">
                <div className="w-full max-w-2xl">
                   <div className=" text-center" style={{ marginBottom: '25px' }}>
                      <h1 style={{ fontSize: '2rem' }}>마니또 이벤트</h1>
